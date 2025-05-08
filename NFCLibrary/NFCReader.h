@@ -17,29 +17,52 @@ void Setup() {
     nfc.begin();
 }
 
-CardData ReadCard() {
-    if (!nfc.tagPresent()) return CardData();
+bool ReadCard(CardData* data) {
+    if (!nfc.tagPresent()) return false;
     
     NfcTag tag = nfc.read();
-    if (!tag.hasNdefMessage()) return CardData();
+    if (!tag.hasNdefMessage()) return false;
 
-    CardData data;
     NdefMessage message = tag.getNdefMessage();
     for (int i = 0; i < message.getRecordCount(); i++) {
         NdefRecord record = message.getRecord(i);
-        byte *payload;
+        byte payload[256];
+        std::string type = record.getType().c_str();
         record.getPayload(payload);
-        int numBytes = record.getPayloadLength();
-        record.print();
-        Serial.println(F("----------------------------"));
-        
-        
+        int payloadLength = record.getPayloadLength();
 
-        Serial.println(F("----------------------------"));
+        std::string payloadAsString = "";
+        for (int c = 0; c < payloadLength; c++) {
+            payloadAsString += (char)payload[c];
+        }
+
+        if (type == "playersetup/champion") {
+          data->champion = std::stoi(payloadAsString, 0, 10);
+        }
+        else if (type == "playersetup/hexcolor") {
+          data->hexColor = payloadAsString;
+        }
+        else if (type == "playersetup/ip") {
+          data->ipAdress = payloadAsString;
+        }
+        else if (type == "playersetup/gameid") {
+          data->gameId = std::stoi(payloadAsString, 0, 10);
+        }
+        else if (type == "playersetup/playerid") {
+          data->playerId = std::stoi(payloadAsString, 0, 10);
+        }
+        else if (type == "playersetup/wifi") {
+          data->wifi = payloadAsString;
+        }
+        else if (type == "playersetup/password") {
+          data->password = payloadAsString;
+        }
     }
     
-    return data;
+    return true;
 }
+
+
 
 
 #endif

@@ -8,6 +8,12 @@ void setup(void) {
 
 void loop(void) {
     Serial.println("\nScan a NFC tag\n");
-    CardData cardData = ReadCard();
+    CardData *cardData = new CardData();
+    if (ReadCard(cardData)) {
+      Serial.println(cardData->champion);
+      Serial.println(cardData->gameId);
+      Serial.println(cardData->playerId);
+    }
+
     delay(5000);
 }
