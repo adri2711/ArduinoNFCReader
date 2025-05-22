@@ -13,13 +13,26 @@
 PN532_I2C pn532_i2c(Wire);
 NfcAdapter nfc = NfcAdapter(pn532_i2c);
 
+int cardContactTimer = 0;
+const int contactsNeeded = 15;
+
 void Setup() {
     nfc.begin();
 }
 
 bool ReadCard(CardData* data) {
-    if (!nfc.tagPresent()) return false;
+    if (!nfc.tagPresent()) {
+      cardContactTimer = 0;
+      return false;
+    } 
     
+    if (cardContactTimer < contactsNeeded) {
+      cardContactTimer++;
+      return false;
+    }
+
+    cardContactTimer = 0;
+
     NfcTag tag = nfc.read();
     if (!tag.hasNdefMessage()) return false;
 
@@ -36,29 +49,31 @@ bool ReadCard(CardData* data) {
             payloadAsString += (char)payload[c];
         }
 
-        if (type == "playersetup/champion") {
+        if (type == "playersetup:champion") {
           data->champion = std::stoi(payloadAsString, 0, 10);
         }
-        else if (type == "playersetup/hexcolor") {
-          data->hexColor = payloadAsString;
+        else if (type == "playersetup:isB") {
+          data->isB = std::stoi(payloadAsString, 0, 10);
         }
-        else if (type == "playersetup/ip") {
-          data->ipAdress = payloadAsString;
+        else if (type == "playersetup:ip") {
+          data->ipAddress = payloadAsString;
         }
-        else if (type == "playersetup/gameid") {
+        else if (type == "playersetup:porttolisten") {
+          data->portToListen = std::stoi(payloadAsString, 0, 10);
+        }
+        else if (type == "playersetup:gameid") {
           data->gameId = std::stoi(payloadAsString, 0, 10);
         }
-        else if (type == "playersetup/playerid") {
+        else if (type == "playersetup:playerid") {
           data->playerId = std::stoi(payloadAsString, 0, 10);
         }
-        else if (type == "playersetup/wifi") {
+        else if (type == "playersetup:wifi") {
           data->wifi = payloadAsString;
         }
-        else if (type == "playersetup/password") {
+        else if (type == "playersetup:password") {
           data->password = payloadAsString;
         }
     }
-    
     return true;
 }
 

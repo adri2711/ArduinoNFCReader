@@ -4,11 +4,12 @@
 #include <string>
 
 struct CardData {
-    std::string ipAdress;
+    std::string ipAddress;
+    int portToListen;
     int champion;
     int gameId;
     int playerId;
-    std::string hexColor;
+    int isB;
     std::string wifi;
     std::string password;
 };
